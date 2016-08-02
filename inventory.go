@@ -24,13 +24,14 @@ func newInventory(nodes map[int]*linodeWithIPs) {
 	}
 	for _, n := range nodes {
 		inv.Hosts = append(inv.Hosts, n.node.Label)
-		publicIP, privateIP := publicPrivateIP(n.ips)
+		publicIP, privateIP, rdns := publicPrivateIP(n.ips)
 		inv.Meta["hostvars"][n.node.Label] = map[string]string{
 			"ansible_ssh_host":   publicIP,
 			"host_label":         n.node.Label,
 			"host_display_group": n.node.DisplayGroup,
 			"host_private_ip":    privateIP,
 			"host_public_ip":     publicIP,
+			"host_rdns":          rdns,
 		}
 	}
 }
@@ -39,19 +40,20 @@ func toJSON() ([]byte, error) {
 	return json.MarshalIndent(inv, " ", "  ")
 }
 
-func publicPrivateIP(ips []linode.LinodeIP) (string, string) {
-	var pub, prv string
+func publicPrivateIP(ips []linode.LinodeIP) (string, string, string) {
+	var pub, prv, rdns string
 	for _, ip := range ips {
 		if ip.IsPublic() {
 			pub = ip.IP
 		} else {
 			prv = ip.IP
 		}
+		rdns = ip.RDNS
 		if pub != "" && prv != "" {
 			break
 		}
 	}
-	return pub, prv
+	return pub, prv, rdns
 }
 
 func invMerge(x1, x2 interface{}) (interface{}, error) {
