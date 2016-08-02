@@ -1,3 +1,4 @@
 [linode]
 api-key = "supersecretlinodekey"
+api-key = "secondarylinodekey"
 display-group = "Staging US"

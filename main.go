@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/awilliams/linode"
+	"github.com/jimyhuang/linode"
 
-	"code.google.com/p/gcfg"
+	"gopkg.in/gcfg.v1"
 )
 
 const configName = "linode-inventory.ini"
@@ -38,11 +38,13 @@ func main() {
 		fatal(err)
 		return
 	}
-	linodeClient = linode.NewClient(config.APIKey)
 
 	if args.list {
-		inv := newInventory(linodes())
-		inventoryJSON, err := inv.toJSON()
+		for _, apikey := range config.APIKey {
+			linodeClient = linode.NewClient(apikey)
+			newInventory(linodes())
+		}
+		inventoryJSON, err := toJSON()
 		if err != nil {
 			fatal(err)
 			return
@@ -65,8 +67,8 @@ func main() {
 }
 
 type configuration struct {
-	APIKey       string `gcfg:"api-key"`
-	DisplayGroup string `gcfg:"display-group"`
+	APIKey       []string `gcfg:"api-key"`
+	DisplayGroup string   `gcfg:"display-group"`
 }
 
 // returns true if displayGroup should be included in result set
